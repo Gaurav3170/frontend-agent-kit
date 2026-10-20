@@ -66,8 +66,9 @@ export const runLighthouseTool = defineTool({
     try {
       lhr = await lighthouse({ url, formFactor, categories: categories as Category[] });
     } catch (error) {
-      const message = (error as Error).message;
-      const hint = /ECONNREFUSED|ERR_CONNECTION_REFUSED|FAILED_DOCUMENT_REQUEST/.test(message)
+      if (error instanceof ToolError) throw error;
+      const message = (error as Error).message.replace(/\.+$/, "");
+      const hint = /ECONNREFUSED|ERR_CONNECTION_REFUSED|FAILED_DOCUMENT_REQUEST|CHROME_INTERSTITIAL_ERROR/.test(message)
         ? " Nothing answered at that URL. Is the server running?"
         : "";
       throw new ToolError(`Lighthouse failed on ${url}: ${message}.${hint}`);

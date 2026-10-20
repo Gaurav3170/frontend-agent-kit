@@ -1,6 +1,6 @@
 {
   "name": "frontend-agent-kit",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An MCP server and Claude Code skills for frontend engineering: bundle analysis, dependency security fixes, Lighthouse audits, image checks and Next.js upgrades.",
   "license": "MIT",
   "type": "module",
@@ -41,15 +41,27 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
-    "chrome-launcher": "1.2.0",
-    "lighthouse": "12.8.2",
     "semver": "7.8.5",
     "zod": "3.25.76"
   },
   "devDependencies": {
     "@types/node": "18.19.130",
     "@types/semver": "7.7.1",
+    "chrome-launcher": "1.2.0",
+    "lighthouse": "12.8.2",
     "tsx": "4.20.6",
     "typescript": "5.9.3"
+  },
+  "peerDependencies": {
+    "chrome-launcher": "1.2.0",
+    "lighthouse": "12.8.2"
+  },
+  "peerDependenciesMeta": {
+    "lighthouse": {
+      "optional": true
+    },
+    "chrome-launcher": {
+      "optional": true
+    }
   }
 }

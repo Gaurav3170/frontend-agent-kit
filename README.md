@@ -46,7 +46,7 @@ Every suggested version is checked against **all** of the package's advisories, 
 
 ## Quick start
 
-You need Node.js 18.17 or later. `run_lighthouse` also needs Chrome or Chromium installed.
+You need Node.js 18.17 or later. Four of the five tools work straight away. `run_lighthouse` needs Lighthouse added and Chrome or Chromium installed: see [Enabling run_lighthouse](#enabling-run_lighthouse).
 
 ### Claude Code: tools and skills
 
@@ -85,6 +85,26 @@ Add a stdio server that runs `npx -y frontend-agent-kit`. For most clients that'
   }
 }
 ```
+
+### Enabling run_lighthouse
+
+Lighthouse and its dependencies make up about 170 MB, nine tenths of a full install. Most MCP clients give a server 30 seconds to start, and on a first run `npx` can't download that much in time, so Lighthouse is an optional dependency. Without it, the server installs in about 15 seconds.
+
+To add it, start the server with Lighthouse as extra packages:
+
+```sh
+claude mcp add frontend-agent-kit -- npx -y -p frontend-agent-kit -p lighthouse@12.8.2 -p chrome-launcher@1.2.0 frontend-agent-kit
+```
+
+For other clients, use the same `npx` arguments in the JSON above. The first start then takes about a minute, so if the client reports a timeout, restart it once the download has finished: `npx` keeps the packages, and later starts are quick. In Claude Code you can also raise the limit for that first start with `MCP_TIMEOUT=120000 claude`.
+
+If `frontend-agent-kit` is a dev dependency of your project instead, run `npm install -D lighthouse@12.8.2 chrome-launcher@1.2.0`.
+
+Without Lighthouse, `run_lighthouse` returns these instructions instead of failing, and the `accessibility-audit` skill offers to continue with its code review.
+
+### A warning you can ignore on Node.js 18
+
+On Node.js 18, `npm` prints `EBADENGINE Unsupported engine` for `@hono/node-server`. The MCP SDK only uses that package for its HTTP transport, and this server talks over stdio, so it's never loaded. Node.js 20 or later doesn't print the warning.
 
 ### Without an agent
 
@@ -126,7 +146,7 @@ Then it merges the fixes into one list of `package.json` changes, taking the hig
 
 ### `run_lighthouse`
 
-One Lighthouse 12.8.2 run in a fresh headless Chrome, on a simulated mid-range phone by default (`formFactor: "desktop"` for desktop). It reports:
+Needs Lighthouse added: see [Enabling run_lighthouse](#enabling-run_lighthouse). One Lighthouse 12.8.2 run in a fresh headless Chrome, on a simulated mid-range phone by default (`formFactor: "desktop"` for desktop). It reports:
 
 - category scores;
 - lab metrics with good / needs improvement / poor ratings;
@@ -219,7 +239,7 @@ Skills are plain Markdown, so they're easy to read before you trust them, and to
                 ▼
  lib/registry.ts     npm registry: abbreviated package metadata (cached) and the bulk advisory endpoint
  lib/inventory.ts    lockfile v2/v3 or node_modules → installed packages, Node's resolution, dependency chains
- lib/lighthouse.ts   one fresh Chrome per run, 120 s timeout
+ lib/lighthouse.ts   optional: loaded on first use; one fresh Chrome per run, 120 s timeout
 
  skills/*/SKILL.md   playbooks that call the tools, stop for approval and verify
  .claude-plugin/     plugin + single-plugin marketplace manifests
@@ -232,6 +252,7 @@ A few decisions behind it:
 - **Reports are markdown written for the agent.** Every report includes what the numbers mean and their limits ("one lab run", "static scan", "gzip is an estimate"), so the agent repeats the caveats instead of overstating results.
 - **Expected failures come back as readable tool errors,** for example "`.next` holds a dev build: run the production build". The agent can recover instead of the call crashing.
 - **The advisory endpoint only returns advisories that match the versions it's sent.** So the tool asks twice: first for installed versions (what's vulnerable?), then for every published version of each vulnerable package (which versions are safe?).
+- **Lighthouse is optional.** It was 88% of the install (192 MB of 287 packages, against 22 MB without it), and the first `npx` start took about 80 seconds, past Claude Code's 30-second startup limit. Without it, a cold start takes about 15 seconds.
 - **Outside services are injected.** The registry and Lighthouse are passed in, so the tests run offline against a fake registry and a saved Lighthouse result.
 
 ## Measurements
@@ -264,7 +285,7 @@ Accuracy on the same project: `audit_dependencies` reported the same four vulner
 
 ```sh
 npm install
-npm test            # 60 tests, offline (node:test)
+npm test            # 61 tests, offline (node:test)
 npm run typecheck
 npm run build       # compiles to dist/
 node scripts/smoke.mjs /absolute/path/to/a/project   # start the built server over stdio and call a tool

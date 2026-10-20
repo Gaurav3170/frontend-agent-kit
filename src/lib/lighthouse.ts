@@ -1,5 +1,5 @@
-import * as chromeLauncher from "chrome-launcher";
-import lighthouse, { desktopConfig, type Config, type Result } from "lighthouse";
+import type { Config, Result } from "lighthouse";
+import { ToolError } from "./errors.js";
 
 export type Category = "performance" | "accessibility" | "best-practices" | "seo";
 export type FormFactor = "mobile" | "desktop";
@@ -27,9 +27,31 @@ const CHROME_FLAGS = [
   ...(process.platform === "linux" ? ["--no-sandbox"] : []),
 ];
 
+export const LIGHTHOUSE_MISSING =
+  "run_lighthouse needs Lighthouse, an optional dependency left out so the server installs and starts quickly. The other four tools work without it. " +
+  "To add it, start the server with: npx -y -p frontend-agent-kit -p lighthouse@12.8.2 -p chrome-launcher@1.2.0 frontend-agent-kit " +
+  "(the first start downloads about 170 MB). If frontend-agent-kit is installed in the project instead, run: npm install -D lighthouse@12.8.2 chrome-launcher@1.2.0";
+
+/**
+ * Lighthouse is two thirds of a full install's packages and nine tenths of its size,
+ * so it's an optional peer dependency, loaded on the first run_lighthouse call.
+ * Without it the server installs in seconds and starts inside an MCP client's timeout.
+ */
+async function load() {
+  try {
+    const [chromeLauncher, lighthouse] = await Promise.all([import("chrome-launcher"), import("lighthouse")]);
+    return { chromeLauncher, lighthouse };
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code === "ERR_MODULE_NOT_FOUND" || code === "MODULE_NOT_FOUND") throw new ToolError(LIGHTHOUSE_MISSING);
+    throw error;
+  }
+}
+
 /** A fresh Chrome per run, so no cache or service worker from an earlier run leaks in. */
 export const runLighthouse: LighthouseRunner = async ({ url, formFactor, categories }) => {
-  let chrome: chromeLauncher.LaunchedChrome;
+  const { chromeLauncher, lighthouse } = await load();
+  let chrome: Awaited<ReturnType<typeof chromeLauncher.launch>>;
   try {
     // handleSIGINT: false. The MCP client owns this process's lifecycle.
     chrome = await chromeLauncher.launch({ chromeFlags: CHROME_FLAGS, logLevel: "silent", handleSIGINT: false });
@@ -39,8 +61,8 @@ export const runLighthouse: LighthouseRunner = async ({ url, formFactor, categor
     );
   }
   try {
-    const config: Config | undefined = formFactor === "desktop" ? desktopConfig : undefined;
-    const run = lighthouse(url, { port: chrome.port, output: "json", logLevel: "error", onlyCategories: categories }, config);
+    const config: Config | undefined = formFactor === "desktop" ? lighthouse.desktopConfig : undefined;
+    const run = lighthouse.default(url, { port: chrome.port, output: "json", logLevel: "error", onlyCategories: categories }, config);
     run.catch(() => {}); // Rejects after a timeout kills Chrome; the timeout already reported it.
     let timer: NodeJS.Timeout | undefined;
     const timeout = new Promise<never>((_, reject) => {

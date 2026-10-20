@@ -2,7 +2,7 @@
   "mcpServers": {
     "frontend-agent-kit": {
       "command": "npx",
-      "args": ["-y", "frontend-agent-kit@0.1.0"]
+      "args": ["-y", "frontend-agent-kit@0.2.0"]
     }
   }
 }

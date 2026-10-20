@@ -21,6 +21,7 @@ Rules for the whole job:
 
 1. Confirm the production server is running and note its URL.
 2. For each page, call `run_lighthouse` with `categories: ["accessibility"]` (add `"performance"` if the user wants both). Record every failing audit, the elements it lists (selector and HTML snippet), and the score.
+   - If it says Lighthouse isn't installed, show the user the command from the message and ask whether to set it up. Don't install anything yourself. If they'd rather not, run `npx -y @axe-core/cli <url>` (axe-core, the same rule engine) if they agree, or continue with Phase 2 only and say the automated checks were skipped.
 3. Rules marked "Not counted in the score" are still real issues. Include them.
 4. Call `find_unoptimized_images` with `projectDir`. Its "no alt" findings show images in the source that may have no text alternative, including on pages you didn't audit.
 

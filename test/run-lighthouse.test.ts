@@ -2,7 +2,8 @@ import { readFileSync } from "node:fs";
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
 import { elementsOf, runLighthouseTool } from "../src/tools/run-lighthouse.js";
-import type { LighthouseRunner } from "../src/lib/lighthouse.js";
+import { LIGHTHOUSE_MISSING, type LighthouseRunner } from "../src/lib/lighthouse.js";
+import { ToolError } from "../src/lib/errors.js";
 import { deps, lhr } from "./helpers.js";
 
 const result = lhr({
@@ -69,6 +70,13 @@ describe("run_lighthouse", () => {
       throw new Error("net::ERR_CONNECTION_REFUSED");
     };
     await assert.rejects(runLighthouseTool.run({ url: "http://localhost:3999/" }, deps({ lighthouse })), /Is the server running\?/);
+  });
+
+  it("passes the install instructions through unchanged when Lighthouse isn't installed", async () => {
+    const lighthouse: LighthouseRunner = async () => {
+      throw new ToolError(LIGHTHOUSE_MISSING);
+    };
+    await assert.rejects(runLighthouseTool.run({ url: "http://localhost:3000/" }, deps({ lighthouse })), (error: Error) => error.message === LIGHTHOUSE_MISSING);
   });
 
   it("refuses non-http URLs", async () => {
