@@ -1,0 +1,55 @@
+{
+  "name": "frontend-agent-kit",
+  "version": "0.1.0",
+  "description": "An MCP server and Claude Code skills for frontend engineering: bundle analysis, dependency security fixes, Lighthouse audits, image checks and Next.js upgrades.",
+  "license": "MIT",
+  "type": "module",
+  "bin": {
+    "frontend-agent-kit": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "engines": {
+    "node": ">=18.17"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Gaurav3170/frontend-agent-kit.git"
+  },
+  "homepage": "https://github.com/Gaurav3170/frontend-agent-kit#readme",
+  "bugs": "https://github.com/Gaurav3170/frontend-agent-kit/issues",
+  "keywords": [
+    "mcp",
+    "mcp-server",
+    "model-context-protocol",
+    "claude-code",
+    "agent-skills",
+    "frontend",
+    "performance",
+    "lighthouse",
+    "bundle-size",
+    "npm-audit",
+    "nextjs",
+    "accessibility"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run build",
+    "typecheck": "tsc -p tsconfig.test.json",
+    "test": "node scripts/test.mjs"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "chrome-launcher": "1.2.0",
+    "lighthouse": "12.8.2",
+    "semver": "7.8.5",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "@types/node": "18.19.130",
+    "@types/semver": "7.7.1",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  }
+}

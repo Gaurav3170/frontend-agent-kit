@@ -1,0 +1,16 @@
+{
+  "name": "frontend-agent-kit",
+  "owner": {
+    "name": "Gaurav Keswani"
+  },
+  "metadata": {
+    "description": "One plugin: MCP tools and agent skills for frontend performance, security and upgrades."
+  },
+  "plugins": [
+    {
+      "name": "frontend-agent-kit",
+      "source": ".",
+      "description": "MCP tools and skills for frontend engineering: bundle analysis, dependency security fixes, Lighthouse and accessibility audits, image checks and Next.js upgrades."
+    }
+  ]
+}
