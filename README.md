@@ -204,7 +204,7 @@ It's a pre-flight check, not a codemod. Behaviour changes, such as caching defau
 
 ## Skills
 
-Each skill is one `SKILL.md` in [`skills/`](skills). They all follow the same pattern:
+Each skill is one `SKILL.md` in [`plugin/skills/`](plugin/skills). They all follow the same pattern:
 
 1. **Gather facts** with the tools. Never guess a version, a size or a score.
 2. **Plan the smallest change, then stop** for the user's approval.
@@ -241,9 +241,11 @@ Skills are plain Markdown, so they're easy to read before you trust them, and to
  lib/inventory.ts    lockfile v2/v3 or node_modules → installed packages, Node's resolution, dependency chains
  lib/lighthouse.ts   optional: loaded on first use; one fresh Chrome per run, 120 s timeout
 
- skills/*/SKILL.md   playbooks that call the tools, stop for approval and verify
- .claude-plugin/     plugin + single-plugin marketplace manifests
- .mcp.json           the plugin starts the server with npx
+ .claude-plugin/marketplace.json   single-plugin marketplace; its entry points at ./plugin
+ plugin/
+   .claude-plugin/plugin.json      plugin manifest
+   .mcp.json                       the plugin starts the published server with npx
+   skills/*/SKILL.md               playbooks that call the tools, stop for approval and verify
 ```
 
 A few decisions behind it:
@@ -253,6 +255,7 @@ A few decisions behind it:
 - **Expected failures come back as readable tool errors,** for example "`.next` holds a dev build: run the production build". The agent can recover instead of the call crashing.
 - **The advisory endpoint only returns advisories that match the versions it's sent.** So the tool asks twice: first for installed versions (what's vulnerable?), then for every published version of each vulnerable package (which versions are safe?).
 - **Lighthouse is optional.** It was 88% of the install (192 MB of 287 packages, against 22 MB without it), and the first `npx` start took about 80 seconds, past Claude Code's 30-second startup limit. Without it, a cold start takes about 15 seconds.
+- **The plugin lives in `plugin/`, not at the repository root.** Claude Code runs `npm ci` on install for any plugin with a `package.json` and a lockfile at its root, with a 60-second limit and no way to turn it off. At the root, that installed this package's development tools, Lighthouse included, and timed out. The plugin needs none of them, because its server comes from npm, so it's kept in a folder with no `package.json`.
 - **Outside services are injected.** The registry and Lighthouse are passed in, so the tests run offline against a fake registry and a saved Lighthouse result.
 
 ## Measurements
@@ -289,7 +292,8 @@ npm test            # 61 tests, offline (node:test)
 npm run typecheck
 npm run build       # compiles to dist/
 node scripts/smoke.mjs /absolute/path/to/a/project   # start the built server over stdio and call a tool
-claude plugin validate .
+claude plugin validate .        # the marketplace
+claude plugin validate plugin   # the plugin
 ```
 
 The tests use temporary projects, a fake registry that behaves like the real advisory endpoint, and a trimmed real Lighthouse 12.8.2 result in `test/fixtures/`.

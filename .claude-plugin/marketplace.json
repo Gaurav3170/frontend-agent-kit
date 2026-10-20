@@ -9,7 +9,7 @@
   "plugins": [
     {
       "name": "frontend-agent-kit",
-      "source": ".",
+      "source": "./plugin",
       "description": "MCP tools and skills for frontend engineering: bundle analysis, dependency security fixes, Lighthouse and accessibility audits, image checks and Next.js upgrades."
     }
   ]

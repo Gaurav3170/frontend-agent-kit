@@ -1,6 +1,6 @@
 {
   "name": "frontend-agent-kit",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "MCP tools and skills for frontend engineering: bundle analysis, dependency security fixes, Lighthouse and accessibility audits, image checks and Next.js upgrades.",
   "author": { "name": "Gaurav Keswani" },
   "repository": "https://github.com/Gaurav3170/frontend-agent-kit",
